@@ -1,6 +1,55 @@
 {
   "reports": [
     {
+      "id": "report-1780062565992",
+      "title": "amazon wildfire",
+      "location": "amazon",
+      "severity": "medium",
+      "desc": "tyutyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy",
+      "evidenceBlobId": "walrus_blob_r1Z4Bftb8OejyIzfYxyFWGFDACQe",
+      "evidenceUrl": "/api/evidence/raw/walrus_blob_r1Z4Bftb8OejyIzfYxyFWGFDACQe",
+      "mimeType": "image/jpeg",
+      "walletAddress": "0x8686499cc35a2e08d2a17b44d90bbb2b8d74ef81814dc75ee3b485d817fb7113",
+      "timestamp": 1780062565992,
+      "status": "pending",
+      "aiAnalysis": {
+        "category": "Disaster Evidence",
+        "severity": "medium",
+        "confidence": 84.9,
+        "tags": [
+          "evidence",
+          "humanitarian"
+        ],
+        "authentic": true,
+        "authenticityScore": 82.8,
+        "authenticityFlags": []
+      },
+      "evidences": [
+        {
+          "blobId": "walrus_blob_r1Z4Bftb8OejyIzfYxyFWGFDACQe",
+          "evidenceUrl": "/api/evidence/raw/walrus_blob_r1Z4Bftb8OejyIzfYxyFWGFDACQe",
+          "fileName": "0pLMm_z94H8D3GKOjxRhrXGY6tTdLjuIgbyWNgc0XVubjjm5ciNVcAMwVtZ9ijb0LDsK6QvrEVzDtJaJ5m1MXFZWNj2hVxk4XGd2xQrYSBQREOXdt59y1kGzYHL4qQKUeIwPLH59E4RnBchdyb37ALwSh2RQYK_a-q0MshuVN2u7M-is4nhApkXBi1j3EiLp.jpg",
+          "fileSize": 21475,
+          "mimeType": "image/jpeg",
+          "aiAnalysis": {
+            "category": "Disaster Evidence",
+            "severity": "medium",
+            "confidence": 84.9,
+            "tags": [
+              "evidence",
+              "humanitarian"
+            ],
+            "authentic": true,
+            "authenticityScore": 82.8,
+            "authenticityFlags": [
+              "Low file size detected — reduced confidence"
+            ]
+          },
+          "isLocal": true
+        }
+      ]
+    },
+    {
       "id": "report-1780060346277",
       "title": "wildfire support relief",
       "location": "-amazon rainforest",
