@@ -709,21 +709,44 @@
           // 1. Check if the file is available statically in the uploads/ folder (for Vercel mock deployment)
           let localStaticUrl = `/uploads/${blobId}`;
           let existsLocally = false;
+          let localMimeType = null;
           try {
             const headRes = await fetch(localStaticUrl, { method: 'HEAD' });
             if (headRes.ok) {
               existsLocally = true;
+              // Try to fetch the metadata JSON file to get the correct mimetype
+              try {
+                const metaRes = await fetch(`${localStaticUrl}.meta`);
+                if (metaRes.ok) {
+                  const metaJson = await metaRes.json();
+                  localMimeType = metaJson.mimetype || metaJson.mimeType;
+                }
+              } catch (metaErr) {
+                console.warn('Failed to fetch static meta file:', metaErr);
+              }
             }
           } catch (e) {}
 
           if (existsLocally) {
             evidenceUrl = localStaticUrl;
+            // Set mimeType from meta, or use heuristics for mock files
+            if (localMimeType) {
+              mimeType = localMimeType;
+            } else {
+              const lowerId = blobId.toLowerCase();
+              if (lowerId.includes('pdf') || lowerId.includes('budget')) {
+                mimeType = 'application/pdf';
+              } else if (lowerId.includes('img') || lowerId.includes('proof') || lowerId.includes('evidence') || lowerId.includes('boat') || lowerId.includes('tarpaulins')) {
+                mimeType = 'image/jpeg';
+              } else {
+                mimeType = 'application/octet-stream';
+              }
+            }
           } else {
             evidenceUrl = `https://aggregator.walrus-testnet.walrus.space/v1/blobs/${blobId}`;
+            mimeType = await detectMimeType(evidenceUrl);
           }
 
-          mimeType = await detectMimeType(evidenceUrl);
-          
           const ext = mimeType.split('/').pop();
           fileName = `${blobId.substring(0, 12)}_document.${ext === 'octet-stream' ? 'bin' : ext}`;
 
