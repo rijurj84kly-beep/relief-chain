@@ -706,7 +706,22 @@
           }
         } else {
           // DECENTRALIZED FALLBACK (No backend database available)
-          evidenceUrl = `https://aggregator.walrus-testnet.walrus.space/v1/blobs/${blobId}`;
+          // 1. Check if the file is available statically in the uploads/ folder (for Vercel mock deployment)
+          let localStaticUrl = `/uploads/${blobId}`;
+          let existsLocally = false;
+          try {
+            const headRes = await fetch(localStaticUrl, { method: 'HEAD' });
+            if (headRes.ok) {
+              existsLocally = true;
+            }
+          } catch (e) {}
+
+          if (existsLocally) {
+            evidenceUrl = localStaticUrl;
+          } else {
+            evidenceUrl = `https://aggregator.walrus-testnet.walrus.space/v1/blobs/${blobId}`;
+          }
+
           mimeType = await detectMimeType(evidenceUrl);
           
           const ext = mimeType.split('/').pop();
