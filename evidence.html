@@ -536,8 +536,10 @@
       return id;
     }
 
-    // Determine backend URL depending on Vite vs Express
-    const BACKEND_URL = window.location.port === '5173' ? 'http://localhost:3000' : '';
+    // Determine backend URL depending on environment
+    const BACKEND_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+      ? (window.location.port === '5173' ? 'http://localhost:3000' : '')
+      : 'https://relief-chain.onrender.com';
 
     // Adjust back button path dynamically based on port
     if (window.location.port === '5173') {
