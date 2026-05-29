@@ -3643,6 +3643,10 @@
     // Helper to get evidence page URL adapting to Vite dev port vs Express backend port
     function getEvidencePageUrl(blobId) {
       if (!blobId) return '#';
+      // If deployed on Vercel/non-localhost, we must use the static evidence.html file
+      if (window.location.hostname !== 'localhost' && !window.location.hostname.includes('127.0.0.1')) {
+        return `/evidence.html?blobId=${blobId}`;
+      }
       if (window.location.port === '5173') {
         return `/evidence.html?blobId=${blobId}`;
       } else {
