@@ -161,7 +161,7 @@ export async function getOwnedObjects(address: string): Promise<{ success: true;
 
     return {
       success: true,
-      objects: paginatedObjects.objects,
+      objects: paginatedObjects.data,
     };
   } catch (err) {
     return handleRpcError(err);

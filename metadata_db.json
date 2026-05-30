@@ -1,6 +1,110 @@
 {
   "reports": [
     {
+      "id": "report-1780062837954",
+      "title": "gtg",
+      "location": "rrt",
+      "severity": "critical",
+      "desc": "rrrrrrrrrrrrrrrrrrrrrrrrr",
+      "evidenceBlobId": "walrus_blob_DP0YFwESVMB7ywvHkIJaWAmtom1C",
+      "evidenceUrl": "/api/evidence/raw/walrus_blob_DP0YFwESVMB7ywvHkIJaWAmtom1C",
+      "mimeType": "application/pdf",
+      "walletAddress": "0x8686499cc35a2e08d2a17b44d90bbb2b8d74ef81814dc75ee3b485d817fb7113",
+      "timestamp": 1780062837954,
+      "status": "rejected",
+      "aiAnalysis": {
+        "category": "River/Flash Flooding",
+        "severity": "critical",
+        "confidence": 84.8,
+        "tags": [
+          "submerged structures",
+          "water displacement",
+          "rescue ready"
+        ],
+        "authentic": true,
+        "authenticityScore": 67.5,
+        "authenticityFlags": []
+      },
+      "evidences": [
+        {
+          "blobId": "walrus_blob_DP0YFwESVMB7ywvHkIJaWAmtom1C",
+          "evidenceUrl": "/api/evidence/raw/walrus_blob_DP0YFwESVMB7ywvHkIJaWAmtom1C",
+          "fileName": "Assam_Flood_Emergency_Relief_Fund_Budget_Audit.pdf",
+          "fileSize": 4453,
+          "mimeType": "application/pdf",
+          "aiAnalysis": {
+            "category": "River/Flash Flooding",
+            "severity": "critical",
+            "confidence": 84.8,
+            "tags": [
+              "submerged structures",
+              "water displacement",
+              "rescue ready"
+            ],
+            "authentic": true,
+            "authenticityScore": 67.5,
+            "authenticityFlags": [
+              "File suspiciously small — possible placeholder or screenshot"
+            ]
+          },
+          "isLocal": true
+        }
+      ],
+      "rejectedAt": 1780062887142,
+      "rejectionReason": "Admin governance review"
+    },
+    {
+      "id": "report-1780062753444",
+      "title": "fund raise for wildfire on amazon rainforest",
+      "location": "regergrh",
+      "severity": "critical",
+      "desc": "tttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt",
+      "evidenceBlobId": "walrus_blob_5Bq4AxFUwIMAcphLSAxdwA5IC8j8",
+      "evidenceUrl": "/api/evidence/raw/walrus_blob_5Bq4AxFUwIMAcphLSAxdwA5IC8j8",
+      "mimeType": "video/mp4",
+      "walletAddress": "0x8686499cc35a2e08d2a17b44d90bbb2b8d74ef81814dc75ee3b485d817fb7113",
+      "timestamp": 1780062753444,
+      "status": "rejected",
+      "aiAnalysis": {
+        "category": "Wildfire / Building Fire",
+        "severity": "critical",
+        "confidence": 85.4,
+        "tags": [
+          "active smoke columns",
+          "heat signature",
+          "structural damage"
+        ],
+        "authentic": true,
+        "authenticityScore": 99.4,
+        "authenticityFlags": []
+      },
+      "evidences": [
+        {
+          "blobId": "walrus_blob_5Bq4AxFUwIMAcphLSAxdwA5IC8j8",
+          "evidenceUrl": "/api/evidence/raw/walrus_blob_5Bq4AxFUwIMAcphLSAxdwA5IC8j8",
+          "fileName": "THE AMAZON IS BURNING (1) (1).mp4",
+          "fileSize": 7807019,
+          "mimeType": "video/mp4",
+          "aiAnalysis": {
+            "category": "Wildfire / Building Fire",
+            "severity": "critical",
+            "confidence": 85.4,
+            "tags": [
+              "active smoke columns",
+              "heat signature",
+              "structural damage"
+            ],
+            "authentic": true,
+            "authenticityScore": 99.4,
+            "authenticityFlags": []
+          },
+          "isLocal": true
+        }
+      ],
+      "rejectedAt": 1780062777649,
+      "rejectionReason": "Admin governance review"
+    },
+    {
       "id": "report-1780062565992",
       "title": "amazon wildfire",
       "location": "amazon",
@@ -11,7 +115,7 @@
       "mimeType": "image/jpeg",
       "walletAddress": "0x8686499cc35a2e08d2a17b44d90bbb2b8d74ef81814dc75ee3b485d817fb7113",
       "timestamp": 1780062565992,
-      "status": "pending",
+      "status": "rejected",
       "aiAnalysis": {
         "category": "Disaster Evidence",
         "severity": "medium",
@@ -47,7 +151,9 @@
           },
           "isLocal": true
         }
-      ]
+      ],
+      "rejectedAt": 1780062781970,
+      "rejectionReason": "Admin governance review"
     },
     {
       "id": "report-1780060346277",
@@ -552,8 +658,8 @@
       "severity": "critical",
       "desc": "Satellite scatterometer data shows wind speeds exceeding 120 km/h. Coastal community centers reporting structural roof damages and power grid collapse. Rebuilding materials and emergency solar lamps required.",
       "evidenceBlobId": "walrus_blob_ai_FXNSrcmnKNRlG9KPgESZnJPK",
-      "evidenceUrl": "https://aggregator.walrus-mainnet.walrus.space/v1/blobs/walrus_blob_ai_FXNSrcmnKNRlG9KPgESZnJPK",
-      "rawUrl": "https://aggregator.walrus-mainnet.walrus.space/v1/blobs/walrus_blob_ai_FXNSrcmnKNRlG9KPgESZnJPK",
+      "evidenceUrl": "https://aggregator.walrus-testnet.walrus.space/v1/blobs/walrus_blob_ai_FXNSrcmnKNRlG9KPgESZnJPK",
+      "rawUrl": "https://aggregator.walrus-testnet.walrus.space/v1/blobs/walrus_blob_ai_FXNSrcmnKNRlG9KPgESZnJPK",
       "mimeType": "application/json",
       "walletAddress": "0x_ai_agent_oracle_ledger",
       "timestamp": 1779918820163,
@@ -667,7 +773,7 @@
       "desc": "Emergency rescue and humanitarian support for families affected by severe flooding near the Brahmaputra river basin.",
       "evidenceBlobId": "walrus_blob_assam_flood_evidence_1",
       "evidenceUrl": "http://localhost:3000/evidence__1.jpg",
-      "rawUrl": "https://aggregator.walrus-mainnet.walrus.space/v1/blobs/walrus_blob_assam_flood_evidence_1",
+      "rawUrl": "https://aggregator.walrus-testnet.walrus.space/v1/blobs/walrus_blob_assam_flood_evidence_1",
       "mimeType": "image/jpeg",
       "walletAddress": "0x5313936ab87ed60dc8a11a1a1a1a1a1a1a1",
       "timestamp": 1779830730649,
@@ -694,7 +800,7 @@
       "desc": "Supporting cyclone survivors with rebuilding aid, emergency housing, food support, and recovery resources.",
       "evidenceBlobId": "walrus_blob_mozambique_cyclone_evidence",
       "evidenceUrl": "https://aggregator.walrus.site/v1/blobs/walrus_blob_mozambique_cyclone_evidence",
-      "rawUrl": "https://aggregator.walrus-mainnet.walrus.space/v1/blobs/walrus_blob_mozambique_cyclone_evidence",
+      "rawUrl": "https://aggregator.walrus-testnet.walrus.space/v1/blobs/walrus_blob_mozambique_cyclone_evidence",
       "mimeType": "image/jpeg",
       "walletAddress": "0x8f2dc55eb87ed60dc8a11a1a1a1a1a1a1a1a1",
       "timestamp": 1779744330650,
@@ -721,7 +827,7 @@
       "desc": "Providing emergency shelter, food supplies, medical aid, and wildlife rescue support for communities affected by devastating bushfires across New South Wales.",
       "evidenceBlobId": "walrus_blob_australia_bushfire_evidence",
       "evidenceUrl": "https://aggregator.walrus.site/v1/blobs/walrus_blob_australia_bushfire_evidence",
-      "rawUrl": "https://aggregator.walrus-mainnet.walrus.space/v1/blobs/walrus_blob_australia_bushfire_evidence",
+      "rawUrl": "https://aggregator.walrus-testnet.walrus.space/v1/blobs/walrus_blob_australia_bushfire_evidence",
       "mimeType": "image/jpeg",
       "walletAddress": "0x4313936ab87ed60dc8a11a1a1a1a1a1a1a1a2",
       "timestamp": 1779657930650,
@@ -787,7 +893,7 @@
       "desc": "Emergency rescue boats deployed in flooded villages of Assam to evacuate stranded families.",
       "proofBlobId": "walrus_proof_rescue_boat",
       "proofUrl": "http://localhost:3000/evidence__2.jpg",
-      "rawUrl": "https://aggregator.walrus-mainnet.walrus.space/v1/blobs/walrus_proof_rescue_boat",
+      "rawUrl": "https://aggregator.walrus-testnet.walrus.space/v1/blobs/walrus_proof_rescue_boat",
       "mimeType": "image/jpeg",
       "timestamp": 1779909930650,
       "coordinates": "26.14° N, 91.73° E"
@@ -799,7 +905,7 @@
       "desc": "450 Waterproof shelter covers delivered directly to coastal Sundarbans agents.",
       "proofBlobId": "walrus_proof_tarpaulins",
       "proofUrl": "https://aggregator.walrus.site/v1/blobs/walrus_proof_tarpaulins",
-      "rawUrl": "https://aggregator.walrus-mainnet.walrus.space/v1/blobs/walrus_proof_tarpaulins",
+      "rawUrl": "https://aggregator.walrus-testnet.walrus.space/v1/blobs/walrus_proof_tarpaulins",
       "mimeType": "image/jpeg",
       "timestamp": 1779873930650,
       "coordinates": "22.12° N, 88.92° E"
@@ -812,8 +918,8 @@
       "title": "Tropical Cyclone Wind Damage",
       "description": "Satellite scatterometer data shows wind speeds exceeding 120 km/h. Coastal community centers reporting structural roof damages and power grid collapse. Rebuilding materials and emergency solar lamps required.",
       "blobId": "walrus_blob_ai_FXNSrcmnKNRlG9KPgESZnJPK",
-      "rawUrl": "https://aggregator.walrus-mainnet.walrus.space/v1/blobs/walrus_blob_ai_FXNSrcmnKNRlG9KPgESZnJPK",
-      "evidenceUrl": "https://aggregator.walrus-mainnet.walrus.space/v1/blobs/walrus_blob_ai_FXNSrcmnKNRlG9KPgESZnJPK",
+      "rawUrl": "https://aggregator.walrus-testnet.walrus.space/v1/blobs/walrus_blob_ai_FXNSrcmnKNRlG9KPgESZnJPK",
+      "evidenceUrl": "https://aggregator.walrus-testnet.walrus.space/v1/blobs/walrus_blob_ai_FXNSrcmnKNRlG9KPgESZnJPK",
       "fileType": "application/json",
       "uploadedBy": "0x_ai_agent_oracle_ledger",
       "timestamp": 1779918820163,

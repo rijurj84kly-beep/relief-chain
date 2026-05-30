@@ -1,14 +1,14 @@
 # ReliefChain — Backend Blockchain Connection Layer
 
-This is the backend integration module connecting **ReliefChain** directly to the **Sui Mainnet** via the **Tatum Gateway RPC** using the modern `@mysten/sui` TypeScript SDK.
+This is the backend integration module connecting **ReliefChain** directly to the **Sui Testnet** via the **Tatum Gateway RPC** using the modern `@mysten/sui` TypeScript SDK.
 
 ---
 
 ## 🛠 Tech Stack & Specifications
 
-* **Blockchain Network:** Sui Mainnet
+* **Blockchain Network:** Sui Testnet
 * **Sui TypeScript SDK:** `@mysten/sui` (Official modern SDK - client, transactions, and cryptography exports)
-* **RPC Gateway:** Tatum Gateway (`https://sui-mainnet.gateway.tatum.io`)
+* **RPC Gateway:** Tatum Gateway (`https://sui-testnet.gateway.tatum.io`)
 * **Module System:** ES Modules (ESM) with import/export syntax
 * **Language:** TypeScript 5.x+ (NodeNext resolution)
 
@@ -39,9 +39,9 @@ c:/reliefchain/
 A `.env` file has been created at the root level of your workspace with the following settings:
 
 ```env
-SUI_RPC_URL=https://sui-mainnet.gateway.tatum.io
-TATUM_API_KEY=t-6a140233ac1249b94ca19bd2-ebdd89d3bed74aa8b0a02e0e
-NETWORK=mainnet
+SUI_RPC_URL=https://sui-testnet.gateway.tatum.io
+TATUM_API_KEY=t-6a140233ac1249b94ca19bd2-0406e37327b248658be3ef78
+NETWORK=testnet
 ```
 
 > [!IMPORTANT]
@@ -63,7 +63,7 @@ This will automatically:
 1. Initialize the **SuiJsonRpcClient** using the Tatum gateway and authorization headers.
 2. Run a connectivity **Health Check** to ping the network.
 3. Retrieve the **Latest Checkpoint Sequence Number** from the blockchain.
-4. Retrieve and parse **Balances** (formatted in SUI and raw MIST) for a sample Sui Mainnet address.
+4. Retrieve and parse **Balances** (formatted in SUI and raw MIST) for a sample Sui Testnet address.
 5. Print a structural sample of owned objects mapping on-chain.
 
 ### 2. Manual TypeScript Build Compilation

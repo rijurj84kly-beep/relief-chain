@@ -2222,7 +2222,7 @@
         <div class="db-profile">
           <div class="db-profile-row">
             <span>Mode:</span>
-            <span style="color:var(--accent); font-weight:700;">Mainnet</span>
+            <span style="color:var(--accent); font-weight:700;">Testnet</span>
           </div>
           <div class="db-profile-addr" id="dbUserAddress">0x...</div>
           <div class="db-profile-bal">
@@ -2461,7 +2461,7 @@
                 style="display:flex; justify-content:space-between; align-items:center; background:rgba(0,0,0,0.3); padding:12px; border-radius:8px; font-size:12px;">
                 <div>
                   <span style="font-weight:700; display:block;">Cyclone Remal Recovery (Sundarbans)</span>
-                  <span style="font-size:9px; opacity:0.4;">Tx: 0x9b2e...c4e3 | Gateway: Tatum Mainnet Node</span>
+                  <span style="font-size:9px; opacity:0.4;">Tx: 0x9b2e...c4e3 | Gateway: Tatum Testnet Node</span>
                 </div>
                 <div style="text-align:right;">
                   <span style="color:var(--accent); font-weight:700; display:block;">+ 1,000 SUI</span>
@@ -2472,7 +2472,7 @@
                 style="display:flex; justify-content:space-between; align-items:center; background:rgba(0,0,0,0.3); padding:12px; border-radius:8px; font-size:12px;">
                 <div>
                   <span style="font-weight:700; display:block;">Assam Flood Rehabilitation (Majuli)</span>
-                  <span style="font-size:9px; opacity:0.4;">Tx: 0xd88a...a4ee | Gateway: Tatum Mainnet Node</span>
+                  <span style="font-size:9px; opacity:0.4;">Tx: 0xd88a...a4ee | Gateway: Tatum Testnet Node</span>
                 </div>
                 <div style="text-align:right;">
                   <span style="color:var(--accent); font-weight:700; display:block;">+ 450 SUI</span>
@@ -3002,7 +3002,7 @@
       `;
 
       if (txHash) {
-        html += `<a class="toast-link" href="https://suiscan.xyz/tx/${txHash}" target="_blank">View on Suiscan Explorer</a>`;
+        html += `<a class="toast-link" href="https://suiscan.xyz/testnet/tx/${txHash}" target="_blank">View on Suiscan Explorer</a>`;
       }
 
       toast.innerHTML = html;
@@ -3109,7 +3109,7 @@
         <div style="width:32px; height:32px; border-radius:8px; background:rgba(34,211,238,0.1); border:1px solid #22d3ee; display:flex; align-items:center; justify-content:center; color:#22d3ee; font-size:16px;">🎮</div>
         <div style="flex:1;">
           <span style="font-weight:700; font-size:15px; display:block;">Demo Wallet (Simulation)</span>
-          <span style="font-size:10px; color:#22d3ee;">Mainnet Simulation — Connect Instantly</span>
+          <span style="font-size:10px; color:#22d3ee;">Testnet Simulation — Connect Instantly</span>
         </div>
       `;
       demoBtn.onclick = () => {
@@ -3151,9 +3151,9 @@
 
     async function handleDemoConnect() {
       closeModal('walletModal');
-      // Public Mainnet address with balance or zero balance fallback
+      // Public Testnet address with balance or zero balance fallback
       const demoAddress = '0x5313936ab87ed60dc8a11a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a';
-      showToast('Connecting Demo Mode', 'Fetching live mainnet account data via Tatum RPC...');
+      showToast('Connecting Demo Mode', 'Fetching live testnet account data via Tatum RPC...');
 
       try {
         let balance = await getSuiBalance(demoAddress);
@@ -3166,7 +3166,7 @@
         userAddress = demoAddress;
 
         updateUIConnected(demoAddress, balance, 'Demo Mode');
-        showToast('Connected', 'Launched in Demo Mode (Sui Mainnet - Read Only)');
+        showToast('Connected', 'Launched in Demo Mode (Sui Testnet - Read Only)');
         localStorage.setItem('reliefchain_wallet', 'demo');
         localStorage.setItem('reliefchain_address', demoAddress);
       } catch (err) {
@@ -3392,7 +3392,7 @@
 
         if (selectedToken === 'SUI') {
           // Standard SUI stream
-          updateTxProgress('Connection Established', 'Connecting to Tatum Sui mainnet RPC node...');
+          updateTxProgress('Connection Established', 'Connecting to Tatum Sui testnet RPC node...');
           await sleep(1200);
           updateTxProgress('Signing Transaction', `Preparing smart contract call to transfer ${amount} SUI to disaster campaign...`);
           await sleep(1500);
@@ -3447,7 +3447,7 @@
           newEntry.style = 'display:flex; justify-content:space-between; align-items:center; background:rgba(0,0,0,0.3); padding:12px; border-radius:8px; font-size:12px;';
 
           let amountDisplay = `+ ${amount} SUI`;
-          let detailLabel = `Tx: ${txHash.substring(0, 6)}...${txHash.substring(txHash.length - 4)} | Gateway: Tatum Mainnet Node`;
+          let detailLabel = `Tx: ${txHash.substring(0, 6)}...${txHash.substring(txHash.length - 4)} | Gateway: Tatum Testnet Node`;
 
           if (selectedToken === 'USDC') {
             amountDisplay = `+ ${amount} USDC`;
@@ -3607,7 +3607,7 @@
       badge.className = 'sync-status-badge';
       badge.innerHTML = `
         <span class="sync-status-dot"></span>
-        <span>Sui Network: <span style="color:#ffffff;">Mainnet</span></span>
+        <span>Sui Network: <span style="color:#ffffff;">Testnet</span></span>
         <span>|</span>
         <span>Gateway: <span style="color:#ffffff;">Tatum RPC</span></span>
         <span>|</span>

@@ -263,7 +263,7 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
         console.error('[WALRUS] Upload failed - response structure unrecognized:', JSON.stringify(response.data));
       }
     } catch (walrusErr) {
-      console.error('[WALRUS UPLOAD FAILURE] Failed to store file on Walrus mainnet:', {
+      console.error('[WALRUS UPLOAD FAILURE] Failed to store file on Walrus testnet:', {
         message: walrusErr.message,
         code: walrusErr.code,
         response: walrusErr.response ? {
@@ -560,7 +560,7 @@ app.get('/api/evidence/metadata/:blobId', (req, res) => {
       type: 'generic',
       title: 'Decentralized Walrus Document',
       location: 'Sui Network / Walrus Aggregator',
-      desc: 'This document exists on the Walrus mainnet storage layer. No corresponding local campaign database metadata is recorded.',
+      desc: 'This document exists on the Walrus testnet storage layer. No corresponding local campaign database metadata is recorded.',
       timestamp: Date.now(),
       walletAddress: 'Unknown Publisher',
       aiAnalysis: {

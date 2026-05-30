@@ -2,8 +2,8 @@ import { checkSuiConnection } from './utils/healthCheck.js';
 import { getBalance, getLatestCheckpoint, getOwnedObjects } from './services/blockchainService.js';
 
 /**
- * Sandbox execution script to verify the Sui Mainnet + Tatum RPC connection health.
- * Queries a well-known active Sui Mainnet address to validate data formatting.
+ * Sandbox execution script to verify the Sui Testnet + Tatum RPC connection health.
+ * Queries a well-known active Sui Testnet address to validate data formatting.
  */
 async function runVerification() {
   console.log('====================================================');
@@ -24,8 +24,8 @@ async function runVerification() {
       console.error(`   Failed to fetch checkpoint: ${checkpointResult.error}`);
     }
 
-    // 3. Query SUI Balance of a well-known Sui Mainnet address
-    // We use a known active Sui Mainnet foundation/donation account for read-only validation
+    // 3. Query SUI Balance of a well-known Sui Testnet address
+    // We use a known active Sui Testnet foundation/donation account for read-only validation
     const targetAddress = '0x5313936ab87ed60dc8a11a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a';
     console.log(`\n3. Querying SUI balance for validation address:\n   ${targetAddress}...`);
 

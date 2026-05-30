@@ -3,8 +3,8 @@
  * Communicates directly with Tatum RPC and standard Sui Wallets in the browser.
  */
 
-const RPC_URL = 'https://sui-mainnet.gateway.tatum.io';
-const API_KEY = 't-6a140233ac1249b94ca19bd2-ebdd89d3bed74aa8b0a02e0e';
+const RPC_URL = 'https://sui-testnet.gateway.tatum.io';
+const API_KEY = 't-6a140233ac1249b94ca19bd2-0406e37327b248658be3ef78';
 
 import { getWallets } from 'https://esm.sh/@mysten/wallet-standard@0.20.3';
 
@@ -34,7 +34,7 @@ try {
 }
 
 /**
- * Sends a JSON-RPC request directly to the Tatum Sui Mainnet endpoint.
+ * Sends a JSON-RPC request directly to the Tatum Sui Testnet endpoint.
  * 
  * @param {string} method - JSON-RPC method name
  * @param {Array} params - parameters array

@@ -6,7 +6,7 @@ dotenv.config();
 
 const rpcUrl = process.env.SUI_RPC_URL;
 const apiKey = process.env.TATUM_API_KEY;
-const network = (process.env.NETWORK || 'mainnet') as 'mainnet' | 'testnet' | 'devnet' | 'localnet';
+const network = (process.env.NETWORK || 'testnet') as 'mainnet' | 'testnet' | 'devnet' | 'localnet';
 
 if (!rpcUrl) {
   throw new Error('SUI_RPC_URL is required in the environment variables (.env).');
