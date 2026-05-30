@@ -2965,7 +2965,7 @@
 
   <!-- Sui Blockchain Integration Client Script -->
   <script type="module">
-    import { getSuiBalance, getLatestCheckpoint, getWalletsList, connectWallet, donateSuiOnChain, getCleanErrorMessage } from './suiConnection.js?v=4';
+    import { getSuiBalance, getLatestCheckpoint, getWalletsList, connectWallet, donateSuiOnChain, getCleanErrorMessage } from './suiConnection.js?v=9';
 
     // State Variables
     let connectedWallet = null;
@@ -3429,7 +3429,7 @@
             
             // Get the campaign recipient address from state
             const campaign = globalCampaigns.find(c => c.id === selectedCampaignId);
-            const recipient = campaign?.walletAddress || '0x5313936ab87ed60dc8a11a1a1a1a1a1a1a1a1a1c';
+            const recipient = campaign?.walletAddress || '0x5313936ab87ed60dc8a11a1a1a1a1a1a1a1a1a1a100000000000000000000000';
 
             console.log('[Sui Donation Flow Frontend Audit Log]:', {
               connectedWallet: connectedWallet?.name || 'Unknown Wallet',
@@ -3537,18 +3537,22 @@
           }, 3000);
         }
       } catch (err) {
-        console.error('=== TRANSACTION FAILURE AUDIT ===');
-        console.error('Error Name:', err?.name);
-        console.error('Error Message:', err?.message);
-        console.error('Error Stack:', err?.stack);
-        if (err && typeof err === 'object') {
-          console.dir(err);
-        }
-        console.error('=================================');
-        
+        // ── Full diagnostic dump ──
+        console.error('[ReliefChain] === DONATION TRANSACTION FAILURE ===');
+        console.error("Raw error:", err);
+        console.error("Dir error:", err);
+        console.error("Keys:", Object.keys(err || {}));
+        console.error("Cause:", err?.cause);
+        console.error("Data:", err?.data);
+        console.error("Code:", err?.code);
+        console.error("Meta:", err?.meta);
+        console.error("Shape:", err?.shape);
+        console.error('[ReliefChain] ================================================');
+
+        txOverlay.classList.remove('active');
         closeModal('donationModal');
-        
-        // Extract real underlying error using the connection helper
+
+        // Surface the actual error — not a masked message
         const cleanMsg = getCleanErrorMessage(err);
         showToast('Transaction Failed', cleanMsg, true);
       }
