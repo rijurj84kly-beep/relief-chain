@@ -271,15 +271,31 @@ export async function donateSuiOnChain(wallet, recipientAddress, amountSui) {
   // Transfer to target recipient
   tx.transferObjects([coin], tx.pure.address(recipientAddress));
 
-  // 2. Request Wallet Standard signature and execution
+  // 2. Request Wallet signature and execution
   const walletObj = wallet.suiWalletObject;
   
-  // Try sui:signAndExecuteTransaction first (newest standard)
+  if (!walletObj.features) {
+    // Legacy / direct injected provider fallback
+    if (typeof walletObj.signAndExecuteTransactionBlock === 'function') {
+      return await walletObj.signAndExecuteTransactionBlock({
+        transactionBlock: tx,
+        chain: 'sui:testnet',
+      });
+    } else if (typeof walletObj.signAndExecuteTransaction === 'function') {
+      return await walletObj.signAndExecuteTransaction({
+        transaction: tx,
+        chain: 'sui:testnet',
+      });
+    }
+    throw new Error('Connected wallet extension does not support transaction signing methods.');
+  }
+
+  // Standard wallet standard features
   const signAndExecute = walletObj.features['sui:signAndExecuteTransaction'] || 
                          walletObj.features['sui:signAndExecuteTransactionBlock'];
                          
   if (!signAndExecute) {
-    throw new Error('Connected wallet extension does not support transaction signing features.');
+    throw new Error('Connected wallet extension does not support standard transaction signing features.');
   }
 
   if (walletObj.features['sui:signAndExecuteTransaction']) {
