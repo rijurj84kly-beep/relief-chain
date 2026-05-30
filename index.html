@@ -2965,12 +2965,13 @@
 
   <!-- Sui Blockchain Integration Client Script -->
   <script type="module">
-    import { getSuiBalance, getLatestCheckpoint, getWalletsList, connectWallet } from './suiConnection.js?v=4';
+    import { getSuiBalance, getLatestCheckpoint, getWalletsList, connectWallet, donateSuiOnChain } from './suiConnection.js?v=4';
 
     // State Variables
     let connectedWallet = null;
     let userAddress = null;
     let selectedCampaignId = null;
+    let globalCampaigns = [];
 
     // Elements
     const btnConnectNavbar = document.querySelector('.btn-connect');
@@ -3384,34 +3385,59 @@
       event.preventDefault();
       const amount = parseFloat(donationAmountInput.value);
       if (isNaN(amount) || amount <= 0) return;
-
+ 
       txOverlay.classList.add('active');
-
+ 
       try {
         const suiEquivalent = selectedToken === 'USDC' ? (amount * 0.40) : amount;
-
-        if (selectedToken === 'SUI') {
-          // Standard SUI stream
-          updateTxProgress('Connection Established', 'Connecting to Tatum Sui testnet RPC node...');
-          await sleep(1200);
-          updateTxProgress('Signing Transaction', `Preparing smart contract call to transfer ${amount} SUI to disaster campaign...`);
-          await sleep(1500);
-          updateTxProgress('Broadcasting Transaction', 'Broadcasting transaction block to Sui network nodes...');
-          await sleep(1200);
+        let txHash = null;
+        const walletName = localStorage.getItem('reliefchain_wallet');
+ 
+        if (walletName === 'demo' || !connectedWallet || connectedWallet.name === 'Demo Mode' || connectedWallet.name === 'Demo Mode (Sim)' || connectedWallet.name === 'Demo Simulation') {
+          // Simulation flow
+          if (selectedToken === 'SUI') {
+            updateTxProgress('Connection Established', 'Connecting to Tatum Sui testnet RPC node...');
+            await sleep(1200);
+            updateTxProgress('Signing Transaction', `Preparing smart contract call to transfer ${amount} SUI to disaster campaign...`);
+            await sleep(1500);
+            updateTxProgress('Broadcasting Transaction', 'Broadcasting transaction block to Sui network nodes...');
+            await sleep(1200);
+          } else {
+            // Stablecoin USDC with cetus pools auto swap to SUI
+            updateTxProgress('Transferring USDC', `Signing approval for campaign contract to wrap and deposit ${amount} USDC stablecoin...`);
+            await sleep(1300);
+            updateTxProgress('DeFi Liquidity Router', `Executing swap route: Exchanging ${amount} USDC into ${suiEquivalent.toFixed(2)} SUI inside Cetus Pools...`);
+            await sleep(1600);
+            updateTxProgress('Broadcasting Swap Transaction', 'Streaming swapped SUI tokens directly into campaign milestone vault...');
+            await sleep(1200);
+          }
+          // Generate random mock transaction hash for Explorer links
+          const randomHex = Array.from({ length: 32 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
+          txHash = `0x${randomHex}`;
         } else {
-          // Stablecoin USDC with cetus pools auto swap to SUI
-          updateTxProgress('Transferring USDC', `Signing approval for campaign contract to wrap and deposit ${amount} USDC stablecoin...`);
-          await sleep(1300);
-          updateTxProgress('DeFi Liquidity Router', `Executing swap route: Exchanging ${amount} USDC into ${suiEquivalent.toFixed(2)} SUI inside Cetus Pools...`);
-          await sleep(1600);
-          updateTxProgress('Broadcasting Swap Transaction', 'Streaming swapped SUI tokens directly into campaign milestone vault...');
-          await sleep(1200);
+          // Real wallet flow
+          if (selectedToken === 'SUI') {
+            updateTxProgress('Initiating Transaction', 'Preparing transaction block and requesting signature...');
+            
+            // Get the campaign recipient address from state
+            const campaign = globalCampaigns.find(c => c.id === selectedCampaignId);
+            const recipient = campaign?.walletAddress || '0x5313936ab87ed60dc8a11a1a1a1a1a1a1a1a1a1a1';
+            
+            const result = await donateSuiOnChain(connectedWallet, recipient, amount);
+            txHash = result.digest;
+          } else {
+            // stablecoin payment simulation (USDC Cetus route requires custom liquidity router SDK integration, so we fallback to simulation)
+            updateTxProgress('Transferring USDC', `Signing approval for campaign contract to wrap and deposit ${amount} USDC stablecoin...`);
+            await sleep(1300);
+            updateTxProgress('DeFi Liquidity Router', `Executing swap route: Exchanging ${amount} USDC into ${suiEquivalent.toFixed(2)} SUI inside Cetus Pools...`);
+            await sleep(1600);
+            updateTxProgress('Broadcasting Swap Transaction', 'Streaming swapped SUI tokens directly into campaign milestone vault...');
+            await sleep(1200);
+            const randomHex = Array.from({ length: 32 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
+            txHash = `0x${randomHex}`;
+          }
         }
-
-        // Generate random mock transaction hash for Explorer links
-        const randomHex = Array.from({ length: 32 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
-        const txHash = `0x${randomHex}`;
-
+ 
         // Update stats on card
         const card = document.querySelector(`.campaign-card[data-campaign-id="${selectedCampaignId}"]`);
         if (card) {
@@ -3419,7 +3445,7 @@
           const currentRaised = parseFloat(raisedSpan.innerText.replace(/,/g, ''));
           const newRaised = currentRaised + suiEquivalent;
           raisedSpan.innerText = newRaised.toLocaleString();
-
+ 
           // Re-evaluate progress bar
           const goalText = card.querySelector('.campaign-stats-goal').innerText;
           const goal = parseFloat(goalText.replace(/[^0-9.]/g, ''));
@@ -3427,7 +3453,7 @@
           const progressFill = card.querySelector('.campaign-progress-fill');
           if (progressFill) progressFill.style.width = `${percent}%`;
         }
-
+ 
         // Update Donor Panel widget counts
         if (selectedToken === 'SUI') {
           globalSuiDonated += amount;
@@ -3438,22 +3464,22 @@
           const totalUsdcWidget = document.getElementById('dbTotalUsdcDonated');
           if (totalUsdcWidget) totalUsdcWidget.innerText = `${globalUsdcDonated.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USDC`;
         }
-
+ 
         // Add dynamic ledger log entry to Contribution History
         const ledger = document.getElementById('dbDonationList');
         if (ledger) {
           const dateStr = new Date().toISOString().replace('T', ' ').substring(0, 19);
           const newEntry = document.createElement('div');
           newEntry.style = 'display:flex; justify-content:space-between; align-items:center; background:rgba(0,0,0,0.3); padding:12px; border-radius:8px; font-size:12px;';
-
+ 
           let amountDisplay = `+ ${amount} SUI`;
           let detailLabel = `Tx: ${txHash.substring(0, 6)}...${txHash.substring(txHash.length - 4)} | Gateway: Tatum Testnet Node`;
-
+ 
           if (selectedToken === 'USDC') {
             amountDisplay = `+ ${amount} USDC`;
             detailLabel = `Swap: ${amount} USDC ➔ ${suiEquivalent.toFixed(2)} SUI | Cetus DeFi Router`;
           }
-
+ 
           newEntry.innerHTML = `
             <div>
               <span style="font-weight:700; display:block;">${donationCampaignName.innerText}</span>
@@ -3466,12 +3492,24 @@
           `;
           ledger.insertBefore(newEntry, ledger.firstChild);
         }
-
+ 
         closeModal('donationModal');
         if (selectedToken === 'SUI') {
           showToast('Donation Successful!', `Successfully streamed ${amount} SUI directly into the campaign contract.`, false, txHash);
         } else {
           showToast('DeFi Swap Successful!', `Exchanged ${amount} USDC stablecoin for ${suiEquivalent.toFixed(2)} SUI and funded campaign successfully.`, false, txHash);
+        }
+
+        // Update user UI balance after transaction (real wallet only)
+        if (walletName !== 'demo' && connectedWallet && connectedWallet.name !== 'Demo Mode') {
+          setTimeout(async () => {
+            try {
+              const balance = await getSuiBalance(userAddress);
+              updateUIConnected(userAddress, balance, localStorage.getItem('reliefchain_wallet_name') || 'Wallet');
+            } catch (err) {
+              console.warn('Failed to refresh balance:', err);
+            }
+          }, 3000);
         }
       } catch (err) {
         console.error(err);
@@ -4155,6 +4193,7 @@
         const campaignsData = await campaignsResponse.json();
 
         if (campaignsData.success) {
+          globalCampaigns = campaignsData.campaigns;
           const grid = document.getElementById('dbCampaignsGrid');
           if (grid) {
             grid.innerHTML = ''; // Clear hardcoded HTML

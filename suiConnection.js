@@ -7,6 +7,7 @@ const RPC_URL = 'https://sui-testnet.gateway.tatum.io';
 const API_KEY = 't-6a140233ac1249b94ca19bd2-0406e37327b248658be3ef78';
 
 import { getWallets } from 'https://esm.sh/@mysten/wallet-standard@0.20.3';
+import { Transaction } from 'https://esm.sh/@mysten/sui@2.17.0/transactions';
 
 if (!window.registeredSuiWallets) {
   window.registeredSuiWallets = [];
@@ -246,3 +247,51 @@ export async function connectWallet(wallet) {
     },
   };
 }
+
+/**
+ * Builds, signs, and executes a SUI transfer on-chain using standard browser wallets.
+ * 
+ * @param {object} wallet - Connected wallet object containing browser provider reference
+ * @param {string} recipientAddress - Receiver public Sui address
+ * @param {number} amountSui - Amount to transfer in SUI
+ * @returns {Promise<object>} Transaction execution result
+ */
+export async function donateSuiOnChain(wallet, recipientAddress, amountSui) {
+  if (!wallet || !wallet.suiWalletObject) {
+    throw new Error('Wallet is not connected.');
+  }
+
+  // 1. Construct standard Transaction Block
+  const tx = new Transaction();
+  const amountInMist = BigInt(Math.floor(amountSui * 1_000_000_000));
+  
+  // Split SUI from gas coin
+  const [coin] = tx.splitCoins(tx.gas, [tx.pure.u64(amountInMist)]);
+  
+  // Transfer to target recipient
+  tx.transferObjects([coin], tx.pure.address(recipientAddress));
+
+  // 2. Request Wallet Standard signature and execution
+  const walletObj = wallet.suiWalletObject;
+  
+  // Try sui:signAndExecuteTransaction first (newest standard)
+  const signAndExecute = walletObj.features['sui:signAndExecuteTransaction'] || 
+                         walletObj.features['sui:signAndExecuteTransactionBlock'];
+                         
+  if (!signAndExecute) {
+    throw new Error('Connected wallet extension does not support transaction signing features.');
+  }
+
+  if (walletObj.features['sui:signAndExecuteTransaction']) {
+    const result = await walletObj.features['sui:signAndExecuteTransaction'].signAndExecuteTransaction({
+      transaction: tx,
+    });
+    return result;
+  } else {
+    const result = await walletObj.features['sui:signAndExecuteTransactionBlock'].signAndExecuteTransactionBlock({
+      transactionBlock: tx,
+    });
+    return result;
+  }
+}
+
