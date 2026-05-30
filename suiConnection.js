@@ -50,15 +50,18 @@ async function sendRpcRequest(method, params = []) {
       headers['x-api-key'] = API_KEY;
     }
 
+    const requestBody = JSON.stringify({
+      jsonrpc: '2.0',
+      id: Date.now(),
+      method,
+      params,
+    });
+    console.log(`[Sui RPC Request Body for ${method}]:`, requestBody);
+
     const response = await fetch(RPC_URL, {
       method: 'POST',
       headers,
-      body: JSON.stringify({
-        jsonrpc: '2.0',
-        id: Date.now(),
-        method,
-        params,
-      }),
+      body: requestBody,
     });
 
     if (!response.ok) {
@@ -182,14 +185,11 @@ export async function connectWallet(wallet) {
   }
 
   let address = '';
+  const walletObj = wallet.suiWalletObject;
+  const isStandardCapable = !!(walletObj.features && walletObj.features['standard:connect']);
 
-  if (wallet.isStandard) {
-    const walletObj = wallet.suiWalletObject;
+  if (isStandardCapable) {
     const connectFeature = walletObj.features['standard:connect'];
-    if (!connectFeature) {
-      throw new Error('Selected wallet does not support connect standard.');
-    }
-    
     let connectOutput;
     try {
       connectOutput = await connectFeature.connect();
@@ -202,17 +202,20 @@ export async function connectWallet(wallet) {
       }
     }
     
-    let account = connectOutput && connectOutput.accounts && connectOutput.accounts[0];
+    let account = connectOutput?.accounts?.[0];
     if (!account) {
-      account = walletObj.accounts && walletObj.accounts[0];
+      account = walletObj.accounts?.[0];
     }
     
     if (!account) {
       throw new Error('No active Sui account found. Please open your wallet extension and ensure a Sui account is created/active and Sui network is enabled.');
     }
     address = account.address;
+    
+    // Ensure isStandard matches reality so execution flow matches connection flow
+    wallet.isStandard = true;
   } else {
-    const provider = wallet.suiWalletObject;
+    const provider = walletObj;
     if (typeof provider.requestPermissions === 'function') {
       await provider.requestPermissions();
     } else if (typeof provider.requestAccount === 'function') {
@@ -227,13 +230,16 @@ export async function connectWallet(wallet) {
     if (!address) {
       if (typeof provider.getAccounts === 'function') {
         const accounts = await provider.getAccounts();
-        address = accounts[0] || '';
+        address = accounts?.[0] || '';
       } else if (provider.account) {
         address = provider.account.address || '';
       } else if (provider.selectedAddress) {
         address = provider.selectedAddress;
       }
     }
+    
+    // Ensure isStandard matches reality
+    wallet.isStandard = false;
   }
 
   if (!address) {
@@ -256,60 +262,251 @@ export async function connectWallet(wallet) {
  * @param {number} amountSui - Amount to transfer in SUI
  * @returns {Promise<object>} Transaction execution result
  */
-export async function donateSuiOnChain(wallet, recipientAddress, amountSui) {
+export async function donateSuiOnChain(wallet, senderAddress, recipientAddress, amountSui) {
   if (!wallet || !wallet.suiWalletObject) {
     throw new Error('Wallet is not connected.');
   }
 
-  // 1. Construct standard Transaction Block
+  // 1. Parameter Validation and Defensive Checks
+  if (typeof amountSui !== 'number' || isNaN(amountSui) || amountSui <= 0) {
+    throw new Error(`Invalid donation amount: ${amountSui}. Amount must be a positive number.`);
+  }
+  if (!senderAddress || typeof senderAddress !== 'string' || !senderAddress.startsWith('0x')) {
+    throw new Error(`Invalid sender address: ${senderAddress}`);
+  }
+  if (!recipientAddress || typeof recipientAddress !== 'string' || !recipientAddress.startsWith('0x')) {
+    throw new Error(`Invalid recipient address: ${recipientAddress}`);
+  }
+
+  // Proactive SUI Balance Check
+  try {
+    const balance = await getSuiBalance(senderAddress);
+    // Standard gas buffer threshold: 0.02 SUI
+    if (balance < amountSui + 0.02) {
+      throw new Error(`Insufficient SUI balance. Your wallet has ${balance.toFixed(4)} SUI, but this donation requires at least ${(amountSui + 0.02).toFixed(4)} SUI (including transaction gas). Please obtain Testnet SUI from a faucet.`);
+    }
+  } catch (err) {
+    if (err.message && err.message.includes('Insufficient SUI balance')) {
+      throw err;
+    }
+    console.warn('Could not proactively verify SUI balance before signing:', err.message);
+  }
+
+  // 2. Construct standard Transaction Block
   const tx = new Transaction();
   const amountInMist = BigInt(Math.floor(amountSui * 1_000_000_000));
   
   // Split SUI from gas coin
-  const [coin] = tx.splitCoins(tx.gas, [tx.pure.u64(amountInMist)]);
+  const [coin] = tx.splitCoins(tx.gas, [tx.pure('u64', amountInMist)]);
   
   // Transfer to target recipient
-  tx.transferObjects([coin], tx.pure.address(recipientAddress));
+  tx.transferObjects([coin], tx.pure('address', recipientAddress));
 
-  // 2. Request Wallet signature and execution
+  // 3. Request Wallet signature
   const walletObj = wallet.suiWalletObject;
-  
+  let signedResult;
+
   if (!walletObj.features) {
-    // Legacy / direct injected provider fallback
-    if (typeof walletObj.signAndExecuteTransactionBlock === 'function') {
-      return await walletObj.signAndExecuteTransactionBlock({
-        transactionBlock: tx,
-        chain: 'sui:testnet',
-      });
-    } else if (typeof walletObj.signAndExecuteTransaction === 'function') {
-      return await walletObj.signAndExecuteTransaction({
-        transaction: tx,
-        chain: 'sui:testnet',
-      });
+    // Audit Log for Legacy Wallet
+    console.log('[Sui Donation Flow Audit - Legacy Wallet]:', {
+      connectedWallet: wallet.name || 'Legacy Wallet',
+      currentAccount: senderAddress,
+      addressUsedForDonation: senderAddress,
+      network: 'sui:testnet',
+      transactionPayload: {
+        sender: senderAddress,
+        recipient: recipientAddress,
+        amountSui: amountSui,
+        amountMist: amountInMist.toString(),
+        gasBudget: tx.blockData?.gasConfig?.budget || 'default',
+        transactionData: tx.blockData
+      }
+    });
+
+    try {
+      // Legacy / direct injected provider fallback
+      if (typeof walletObj.signTransactionBlock === 'function') {
+        signedResult = await walletObj.signTransactionBlock({
+          transactionBlock: tx,
+          chain: 'sui:testnet',
+        });
+      } else if (typeof walletObj.signTransaction === 'function') {
+        signedResult = await walletObj.signTransaction({
+          transaction: tx,
+          chain: 'sui:testnet',
+        });
+      } else {
+        throw new Error('Connected legacy wallet extension does not support transaction signing methods.');
+      }
+    } catch (error) {
+      console.error('=== Sui Legacy Wallet Transaction Signing Exception ===');
+      console.error('Error Message:', error?.message);
+      console.error('Error Stack:', error?.stack);
+      if (error && typeof error === 'object') {
+        console.dir(error);
+      }
+      console.error('===============================================');
+      const cleanMessage = getCleanErrorMessage(error);
+      throw new Error(cleanMessage);
     }
-    throw new Error('Connected wallet extension does not support transaction signing methods.');
-  }
-
-  // Standard wallet standard features
-  const signAndExecute = walletObj.features['sui:signAndExecuteTransaction'] || 
-                         walletObj.features['sui:signAndExecuteTransactionBlock'];
-                         
-  if (!signAndExecute) {
-    throw new Error('Connected wallet extension does not support standard transaction signing features.');
-  }
-
-  if (walletObj.features['sui:signAndExecuteTransaction']) {
-    const result = await walletObj.features['sui:signAndExecuteTransaction'].signAndExecuteTransaction({
-      transaction: tx,
-      chain: 'sui:testnet',
-    });
-    return result;
   } else {
-    const result = await walletObj.features['sui:signAndExecuteTransactionBlock'].signAndExecuteTransactionBlock({
-      transactionBlock: tx,
-      chain: 'sui:testnet',
+    // Resolve standard WalletAccount defensively
+    const activeAccount = walletObj.accounts?.find(acc => acc.address === senderAddress) || walletObj.accounts?.[0];
+
+    if (!activeAccount) {
+      throw new Error(`Could not resolve active wallet account for sender address: ${senderAddress}. Please ensure your wallet has an active account connected.`);
+    }
+
+    // Audit Log for Standard Wallet
+    console.log('[Sui Donation Flow Audit - Standard Wallet]:', {
+      connectedWallet: wallet.name || 'Standard Wallet',
+      currentAccount: activeAccount.address,
+      addressUsedForDonation: senderAddress,
+      network: 'sui:testnet',
+      transactionPayload: {
+        sender: senderAddress,
+        recipient: recipientAddress,
+        amountSui: amountSui,
+        amountMist: amountInMist.toString(),
+        gasBudget: tx.blockData?.gasConfig?.budget || 'default',
+        transactionData: tx.blockData
+      }
     });
-    return result;
+
+    try {
+      if (walletObj.features['sui:signTransaction']) {
+        signedResult = await walletObj.features['sui:signTransaction'].signTransaction({
+          transaction: tx,
+          account: activeAccount,
+          chain: 'sui:testnet',
+        });
+      } else if (walletObj.features['sui:signTransactionBlock']) {
+        signedResult = await walletObj.features['sui:signTransactionBlock'].signTransactionBlock({
+          transactionBlock: tx,
+          account: activeAccount,
+          chain: 'sui:testnet',
+        });
+      } else {
+        throw new Error('Connected wallet extension does not support transaction signing standard features.');
+      }
+    } catch (error) {
+      console.error('=== Sui Wallet Transaction Signing Exception ===');
+      console.error('Error Object Name:', error?.name);
+      console.error('Error Message:', error?.message);
+      console.error('Error Stack:', error?.stack);
+      if (error && typeof error === 'object') {
+        console.error('Error Object Keys:', Object.keys(error));
+        try {
+          console.error('Error Details:', error.details);
+        } catch (e) {}
+        try {
+          console.error('Error Cause:', error.cause);
+        } catch (e) {}
+        try {
+          console.error('Error Data:', error.data);
+          console.error('Error Data Stringified:', JSON.stringify(error.data, null, 2));
+        } catch (e) {}
+        console.dir(error);
+      }
+      console.error('========================================');
+      const cleanMessage = getCleanErrorMessage(error);
+      throw new Error(cleanMessage);
+    }
+  }
+
+  // 4. Broadcast the signed transaction directly via Tatum RPC
+  try {
+    console.log('[Sui Direct Broadcast]: Sending signed transaction bytes to Tatum RPC...');
+    
+    // Resolve transaction bytes defensively across modern/legacy wallet standards
+    const txBytes = signedResult.transactionBytes || signedResult.transactionBlockBytes || signedResult.bytes;
+    const signature = signedResult.signature;
+
+    // Tasks 1, 2, 3: Log diagnostics
+    console.log('[Sui Broadcast Diagnostics]: signedResult keys:', Object.keys(signedResult));
+    console.log('[Sui Broadcast Diagnostics]: Resolving txBytes:', txBytes ? (txBytes.substring(0, 30) + '...') : 'undefined');
+    console.log('[Sui Broadcast Diagnostics]: Resolving signature:', signature ? (signature.substring(0, 30) + '...') : 'undefined');
+
+    if (!txBytes) {
+      throw new Error('Transaction bytes are missing from the signed result returned by the wallet extension.');
+    }
+    if (!signature) {
+      throw new Error('Signature is missing from the signed result returned by the wallet extension.');
+    }
+
+    const payload = [
+      txBytes,
+      [signature],
+      {
+        showInput: true,
+        showEffects: true,
+        showEvents: true
+      },
+      'WaitForLocalExecution'
+    ];
+
+    console.log('[Sui Broadcast Diagnostics]: Full JSON-RPC Payload:', JSON.stringify(payload, null, 2));
+
+    const executeResult = await sendRpcRequest('sui_executeTransactionBlock', payload);
+    
+    // Check if execution failed on-chain
+    const status = executeResult?.effects?.status?.status;
+    if (status === 'failure') {
+      const errorMsg = executeResult?.effects?.status?.error || 'Transaction execution failed on-chain.';
+      throw new Error(errorMsg);
+    }
+    
+    console.log('[Sui Direct Broadcast Success]:', executeResult);
+    return executeResult;
+  } catch (broadcastError) {
+    console.error('=== Sui RPC Broadcast Exception ===');
+    console.error('Error Message:', broadcastError?.message);
+    console.error('Error Stack:', broadcastError?.stack);
+    console.error('===================================');
+    throw new Error(`Blockchain Broadcast Failed: ${broadcastError.message}`);
+  }
+}
+
+/**
+ * Extracted helper to resolve underlying blockchain, RPC, or wallet standard error details.
+ * 
+ * @param {any} err - The error object to clean
+ * @returns {string} User-friendly detailed error message
+ */
+export function getCleanErrorMessage(err) {
+  if (!err) return 'Unknown blockchain error.';
+  
+  if (typeof err === 'string') return err;
+  
+  // 1. Intercept "Incorrect password" Sui Wallet extension state bug and guide the user
+  const errStr = err && typeof err === 'object' ? JSON.stringify(err).toLowerCase() : String(err).toLowerCase();
+  if (errStr.includes('incorrect password') || (err.message && err.message.toLowerCase().includes('password'))) {
+    return 'Transaction Failed: "Incorrect password". This is a known Sui Wallet extension session bug. To bypass this, please open the Sui Wallet extension from your browser toolbar, enter your password to unlock it first, and then submit the donation again while the wallet is active and unlocked.';
+  }
+
+  // 2. Extract nested message
+  if (err.cause?.message) {
+    return err.cause.message;
+  }
+  if (err.details) {
+    return typeof err.details === 'string' ? err.details : JSON.stringify(err.details);
+  }
+  if (err.data) {
+    if (err.data.message) {
+      return err.data.message;
+    }
+    try {
+      return JSON.stringify(err.data);
+    } catch (e) {}
+  }
+  if (err.message) {
+    return err.message;
+  }
+
+  try {
+    return JSON.stringify(err);
+  } catch (e) {
+    return err.toString();
   }
 }
 

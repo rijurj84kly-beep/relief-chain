@@ -2681,7 +2681,7 @@
 
       // 1. Earth mesh
       const earthGeometry = new THREE.SphereGeometry(1.8, 64, 64);
-      const earthTexture = textureLoader.load('https://unpkg.com/three-globe/example/img/earth-night.jpg');
+      const earthTexture = textureLoader.load('./earth-night.jpg');
       const earthMaterial = new THREE.MeshPhongMaterial({
         map: earthTexture,
         shininess: 25,
@@ -2692,7 +2692,7 @@
 
       // 2. Cloud layer mesh
       const cloudsGeometry = new THREE.SphereGeometry(1.815, 64, 64);
-      const cloudsTexture = textureLoader.load('https://unpkg.com/three-globe/example/img/earth-clouds.png');
+      const cloudsTexture = textureLoader.load('./earth-clouds.png');
       const cloudsMaterial = new THREE.MeshPhongMaterial({
         map: cloudsTexture,
         transparent: true,
@@ -2965,7 +2965,7 @@
 
   <!-- Sui Blockchain Integration Client Script -->
   <script type="module">
-    import { getSuiBalance, getLatestCheckpoint, getWalletsList, connectWallet, donateSuiOnChain } from './suiConnection.js?v=4';
+    import { getSuiBalance, getLatestCheckpoint, getWalletsList, connectWallet, donateSuiOnChain, getCleanErrorMessage } from './suiConnection.js?v=4';
 
     // State Variables
     let connectedWallet = null;
@@ -3191,30 +3191,22 @@
       }
 
       try {
-        // Connect to slush wallet
-        let accounts;
-        if (typeof provider.requestPermissions === 'function') {
-          await provider.requestPermissions();
-          accounts = await provider.getAccounts();
-        } else if (typeof provider.connect === 'function') {
-          await provider.connect();
-          accounts = await provider.getAccounts();
-        }
-
-        const address = accounts[0] || '';
-        if (!address) throw new Error('No account returned from Slush Wallet.');
-
+        const walletWrapper = {
+          name: 'Slush Wallet',
+          isStandard: !!(provider.features && provider.features['standard:connect']),
+          suiWalletObject: provider
+        };
+        const connection = await connectWallet(walletWrapper);
+        const address = connection.account.address;
         const balance = await getSuiBalance(address);
+        
+        userAddress = address; // Update global state
         updateUIConnected(address, balance, 'Slush Wallet');
         showToast('Success', 'Connected to Slush Wallet successfully!');
 
         localStorage.setItem('reliefchain_wallet', 'slush');
         localStorage.setItem('reliefchain_address', address);
-        connectedWallet = {
-          name: 'Slush Wallet',
-          isStandard: false,
-          suiWalletObject: provider
-        };
+        connectedWallet = connection.wallet;
       } catch (err) {
         console.error('Slush connection error:', err);
         showToast('Connection Failed', err.message || 'Could not connect to Slush Wallet.', true);
@@ -3390,13 +3382,24 @@
       event.preventDefault();
       const amount = parseFloat(donationAmountInput.value);
       if (isNaN(amount) || amount <= 0) return;
+
+      const walletName = localStorage.getItem('reliefchain_wallet');
+      const isRealWallet = walletName === 'installed' || walletName === 'slush';
+
+      // Enforce connection check before executing real transactions
+      if (isRealWallet && (!connectedWallet || !userAddress)) {
+        txOverlay.classList.remove('active');
+        closeModal('donationModal');
+        openWalletModal();
+        showToast('Connection Required', 'Wallet connection is not complete. Please reconnect your wallet.', true);
+        return;
+      }
  
       txOverlay.classList.add('active');
  
       try {
         const suiEquivalent = selectedToken === 'USDC' ? (amount * 0.40) : amount;
         let txHash = null;
-        const walletName = localStorage.getItem('reliefchain_wallet');
  
         if (walletName === 'demo' || !connectedWallet || connectedWallet.name === 'Demo Mode' || connectedWallet.name === 'Demo Mode (Sim)' || connectedWallet.name === 'Demo Simulation') {
           // Simulation flow
@@ -3426,9 +3429,22 @@
             
             // Get the campaign recipient address from state
             const campaign = globalCampaigns.find(c => c.id === selectedCampaignId);
-            const recipient = campaign?.walletAddress || '0x5313936ab87ed60dc8a11a1a1a1a1a1a1a1a1a1a1';
+            const recipient = campaign?.walletAddress || '0x5313936ab87ed60dc8a11a1a1a1a1a1a1a1a1a1c';
+
+            console.log('[Sui Donation Flow Frontend Audit Log]:', {
+              connectedWallet: connectedWallet?.name || 'Unknown Wallet',
+              currentAccount: userAddress,
+              addressUsedForDonation: userAddress,
+              network: 'sui:testnet',
+              transactionPayload: {
+                sender: userAddress,
+                recipient: recipient,
+                amountSui: amount,
+                token: selectedToken
+              }
+            });
             
-            const result = await donateSuiOnChain(connectedWallet, recipient, amount);
+            const result = await donateSuiOnChain(connectedWallet, userAddress, recipient, amount);
             txHash = result?.digest || result?.effects?.transactionEffects?.transactionDigest || '';
             if (!txHash) {
               const randomHex = Array.from({ length: 32 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
@@ -3521,9 +3537,20 @@
           }, 3000);
         }
       } catch (err) {
-        console.error(err);
+        console.error('=== TRANSACTION FAILURE AUDIT ===');
+        console.error('Error Name:', err?.name);
+        console.error('Error Message:', err?.message);
+        console.error('Error Stack:', err?.stack);
+        if (err && typeof err === 'object') {
+          console.dir(err);
+        }
+        console.error('=================================');
+        
         closeModal('donationModal');
-        showToast('Transaction Failed', err.message || 'Error executing blockchain transfer.', true);
+        
+        // Extract real underlying error using the connection helper
+        const cleanMsg = getCleanErrorMessage(err);
+        showToast('Transaction Failed', cleanMsg, true);
       }
     });
 
