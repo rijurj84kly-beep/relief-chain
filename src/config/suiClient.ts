@@ -32,7 +32,7 @@ const transport = new JsonRpcHTTPTransport({
 });
 
 /**
- * Singleton instance of the SuiJsonRpcClient connected to Sui Mainnet via Tatum RPC.
+ * Singleton instance of the SuiJsonRpcClient connected to Sui Testnet via Tatum RPC.
  */
 export const suiClient = new SuiJsonRpcClient({
   transport,
