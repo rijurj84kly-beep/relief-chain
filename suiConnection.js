@@ -285,11 +285,13 @@ export async function donateSuiOnChain(wallet, recipientAddress, amountSui) {
   if (walletObj.features['sui:signAndExecuteTransaction']) {
     const result = await walletObj.features['sui:signAndExecuteTransaction'].signAndExecuteTransaction({
       transaction: tx,
+      chain: 'sui:testnet',
     });
     return result;
   } else {
     const result = await walletObj.features['sui:signAndExecuteTransactionBlock'].signAndExecuteTransactionBlock({
       transactionBlock: tx,
+      chain: 'sui:testnet',
     });
     return result;
   }
